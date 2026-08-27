@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gisgears"
+version = "0.1.0"
+authors = [
+    { name = "aaronchh", email = "aaronhsu219@gmail.com" },
+]
+description = "A collection of tools for GIS/hydrology raster and vector analysis"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "rasterio",
+    "pyshp",
+    "whitebox",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/AaronOET/gisgears"
+
+[tool.setuptools]
+packages = ["gisgears"]
+
+[project.scripts]
+gisgears = "gisgears.cli:main"
+gisgears-info = "gisgears.describe:main"
+wsdgen = "gisgears.wsdgen:main"

@@ -2,7 +2,7 @@
 GISGEARS - A collection of tools for GIS/hydrology raster and vector analysis.
 """
 
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 __all__ = [
     'describe',
@@ -10,6 +10,7 @@ __all__ = [
     'showtable',
     'showtif',
     'wsdgen',
+    'wsdpyshed',
 ]
 
 from . import describe
@@ -17,4 +18,5 @@ from . import showshp
 from . import showtable
 from . import showtif
 from . import wsdgen
+from . import wsdpyshed
 from . import cli

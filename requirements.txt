@@ -7,3 +7,5 @@ pandas
 pyogrio
 pyproj
 matplotlib
+pysheds
+shapely

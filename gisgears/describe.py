@@ -21,6 +21,22 @@ TOOL_DESCRIPTIONS = {
             wsdgen --dem dem.tif --outlet outlet.shp                     # Point outlet
             wsdgen --dem dem.tif --outlet crosssection.shp --all-outputs # Keep intermediates
     """,
+    'wsdpyshed': """
+        Delineate a watershed from a DEM and an outlet (point or line) using pysheds.
+
+        Pure-Python alternative to wsdgen (no WhiteboxTools needed). Fills
+        pits/depressions, resolves flats, computes D8 flow direction and
+        accumulation, snaps a point outlet to the nearest stream cell,
+        delineates the catchment and extracts its stream network. A line
+        outlet (cross-section) yields everything draining to any cell it
+        crosses.
+
+        Examples:
+            wsdpyshed --dem dem.tif --outlet pourpoint.shp
+            wsdpyshed --dem dem.tif --outlet crosssection.shp   # Line outlet
+            wsdpyshed --dem dem.tif --xy 285612.0 2936416.7 --acc-threshold 500
+            wsdpyshed --dem dem.tif --outlet pourpoint.shp --all-outputs --plot
+    """,
     'showtif': """
         Display a DEM GeoTIFF with an elevation colormap and hillshade.
 

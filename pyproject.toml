@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gisgears"
-version = "0.4.0"
+version = "0.5.0"
 authors = [
     { name = "aaronchh", email = "aaronhsu219@gmail.com" },
 ]
@@ -42,6 +42,7 @@ gisgears = "gisgears.cli:main"
 gisgears-info = "gisgears.describe:main"
 wsdgen = "gisgears.wsdgen:main"
 wsdpyshed = "gisgears.wsdpyshed:main"
+wsdsmooth = "gisgears.wsdsmooth:main"
 showtif = "gisgears.showtif:main"
 showshp = "gisgears.showshp:main"
 showtable = "gisgears.showtable:main"

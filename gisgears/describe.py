@@ -37,6 +37,17 @@ TOOL_DESCRIPTIONS = {
             wsdpyshed --dem dem.tif --xy 285612.0 2936416.7 --acc-threshold 500
             wsdpyshed --dem dem.tif --outlet pourpoint.shp --all-outputs --plot
     """,
+    'wsdsmooth': """
+        Smooth the boundary of a watershed polygon shapefile.
+
+        Replaces each boundary vertex with the moving average of the
+        surrounding vertices (filter size: odd, >=3, default 9), keeping
+        holes, attributes and the CRS. Works on wsdgen and wsdpyshed output.
+
+        Examples:
+            wsdsmooth WSD/watershed.shp                 # -> WSD/watershed_smooth.shp
+            wsdsmooth watershed.shp --filter 15         # Smoother boundary
+    """,
     'showtif': """
         Display a DEM GeoTIFF with an elevation colormap and hillshade.
 

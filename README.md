@@ -14,6 +14,7 @@ pip install gisgears
 
 - **wsdgen**: Delineate a watershed from a DEM and an outlet layer (point or line)
 - **wsdpyshed**: Delineate a watershed and stream network from a DEM and an outlet (point or line) using pysheds (no WhiteboxTools needed)
+- **wsdsmooth**: Smooth the boundary of a watershed polygon shapefile
 - **showtif**: Display a DEM GeoTIFF with an elevation colormap and hillshade
 - **showshp**: Display one or more shapefiles overlaid on a single map
 - **showtable**: Print the attribute table of a shapefile or GeoPackage layer
@@ -40,6 +41,10 @@ wsdpyshed --dem dem.tif --outlet pourpoint.shp
 wsdpyshed --dem dem.tif --outlet crosssection.shp   # line outlet
 wsdpyshed --dem dem.tif --xy 285612.0 2936416.7 --acc-threshold 500 --plot
 
+# Smooth a watershed boundary (default filter 9, written to WSD/<name>_smooth.shp)
+wsdsmooth WSD/watershed.shp
+wsdsmooth watershed.shp --filter 15 -o basin_smooth.shp
+
 # Inspect a DEM (prints CRS/size/stats, plots elevation + hillshade)
 showtif dem.tif
 
@@ -64,6 +69,11 @@ from gisgears import wsdpyshed
 
 # Same idea with pysheds; also writes dem_clipped.tif and streams.gpkg/.geojson to WSD/
 wsdpyshed.delineate_watershed(dem="dem.tif", outlet="pourpoint.shp", acc_threshold=200)
+
+from gisgears import wsdsmooth
+
+# Smooth a watershed boundary (written to WSD/watershed_smooth.shp)
+wsdsmooth.smooth_watershed("WSD/watershed.shp", filter_size=9)
 
 from gisgears import showtif, showshp, showtable
 

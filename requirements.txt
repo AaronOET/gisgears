@@ -2,3 +2,8 @@ numpy
 rasterio
 pyshp
 whitebox
+geopandas
+pandas
+pyogrio
+pyproj
+matplotlib

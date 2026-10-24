@@ -13,6 +13,9 @@ pip install gisgears
 ## Features
 
 - **wsdgen**: Delineate a watershed from a DEM and an outlet layer (point or line)
+- **showtif**: Display a DEM GeoTIFF with an elevation colormap and hillshade
+- **showshp**: Display one or more shapefiles overlaid on a single map
+- **showtable**: Print the attribute table of a shapefile or GeoPackage layer
 
 ## Usage
 
@@ -30,6 +33,16 @@ wsdgen --dem dem.tif --outlet crosssection.shp --all-outputs
 
 # Use a coarser/finer boundary-smoothing filter
 wsdgen --dem dem.tif --outlet outlet.shp --smooth-filter 15
+
+# Inspect a DEM (prints CRS/size/stats, plots elevation + hillshade)
+showtif dem.tif
+
+# Overlay shapefiles on one map, labelling features by a column
+showshp WSD/watershed.shp outlet.shp -l Station
+
+# Print an attribute table (selected columns, with geometry as WKT)
+showtable thiessen.shp -c Station -g
+showtable data.gpkg -l roads -n 20
 ```
 
 ### Python API
@@ -39,6 +52,12 @@ from gisgears import wsdgen
 
 # Delineate a watershed (written to WSD/watershed.tif, watershed.shp, watershed_smooth.shp)
 wsdgen.delineate_watershed(dem="dem.tif", outlet="outlet.shp")
+
+from gisgears import showtif, showshp, showtable
+
+showtif.show_dem("dem.tif")
+showshp.show_shapefiles(["WSD/watershed.shp", "outlet.shp"], label="Station")
+table = showtable.show_table("thiessen.shp", columns=["Station"])  # returns a DataFrame
 ```
 
 ## Notes

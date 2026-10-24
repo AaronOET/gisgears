@@ -52,6 +52,7 @@ TOOL_DESCRIPTIONS = {
             showtable thiessen.shp
             showtable thiessen.shp -c Station -g   # Selected columns plus geometry WKT
             showtable data.gpkg -l roads -n 20     # Pick a layer, first 20 rows
+            showtable data.gpkg --list-layers      # List layers only
     """,
 }
 

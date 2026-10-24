@@ -15,14 +15,22 @@ import pandas as pd
 import pyogrio
 
 
+def list_layers(path, verbose=True):
+    """Return the layers in a GeoPackage (or other vector file) as (name, geometry type) pairs."""
+    layers = [(name, geom_type) for name, geom_type in pyogrio.list_layers(path)]
+    if verbose:
+        print(f"Layers in {path}:")
+        for name, geom_type in layers:
+            print(f"  {name}  ({geom_type})")
+        print()
+    return layers
+
+
 def show_table(path, layer=None, rows=None, columns=None, geometry=False):
     """Print layer info and its attribute table. Returns the table as a DataFrame."""
     layers = pyogrio.list_layers(path)  # array of [name, geometry type]
     if len(layers) > 1:
-        print("Layers:")
-        for name, geom_type in layers:
-            print(f"  {name}  ({geom_type})")
-        print()
+        list_layers(path)
     if layer is None:
         layer = layers[0][0]
     elif layer not in layers[:, 0]:
@@ -72,11 +80,14 @@ Examples:
   showtable thiessen.shp
   showtable thiessen.shp -c Station -g     # Selected columns plus geometry WKT
   showtable data.gpkg -l roads -n 20       # Pick a layer, first 20 rows
+  showtable data.gpkg --list-layers        # List layers only
         """,
     )
     parser.add_argument("path", type=Path, help="Path to a .shp or .gpkg file")
     parser.add_argument("-l", "--layer",
                         help="Layer name inside a GeoPackage (default: first layer)")
+    parser.add_argument("-L", "--list-layers", action="store_true",
+                        help="List the layers in the file and exit")
     parser.add_argument("-n", "--rows", type=int, metavar="N",
                         help="Show only the first N rows (default: all)")
     parser.add_argument("-c", "--columns", nargs="+", metavar="COL",
@@ -87,6 +98,9 @@ Examples:
 
     if not args.path.exists():
         raise SystemExit(f"File not found: {args.path}")
+    if args.list_layers:
+        list_layers(args.path)
+        return
     show_table(args.path, layer=args.layer, rows=args.rows,
                columns=args.columns, geometry=args.geometry)
 

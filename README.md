@@ -43,6 +43,7 @@ showshp WSD/watershed.shp outlet.shp -l Station
 # Print an attribute table (selected columns, with geometry as WKT)
 showtable thiessen.shp -c Station -g
 showtable data.gpkg -l roads -n 20
+showtable data.gpkg --list-layers
 ```
 
 ### Python API
@@ -58,6 +59,7 @@ from gisgears import showtif, showshp, showtable
 showtif.show_dem("dem.tif")
 showshp.show_shapefiles(["WSD/watershed.shp", "outlet.shp"], label="Station")
 table = showtable.show_table("thiessen.shp", columns=["Station"])  # returns a DataFrame
+layers = showtable.list_layers("data.gpkg")  # [(name, geometry type), ...]
 ```
 
 ## Notes

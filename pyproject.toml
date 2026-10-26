@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gisgears"
-version = "0.6.0"
+version = "0.6.1"
 authors = [
     { name = "aaronchh", email = "aaronhsu219@gmail.com" },
 ]

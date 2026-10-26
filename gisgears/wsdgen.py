@@ -7,7 +7,9 @@ point layer (a single manually-marked outlet) or a line layer (e.g. a
 cross-section at the watershed outlet) - this tool breaches depressions,
 computes D8 flow direction/accumulation, snaps the outlet onto the stream,
 delineates the watershed, and converts the result to polygon shapefiles
-(raw and boundary-smoothed).
+(raw and boundary-smoothed). The stream network inside the watershed
+(cells whose flow accumulation exceeds a threshold) is written as
+streams.shp, streams.gpkg and streams.geojson.
 
 Requires the WhiteboxTools executable, which the `whitebox` Python package
 downloads automatically on first use.
@@ -18,6 +20,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+import geopandas as gpd
 import numpy as np
 import rasterio
 import shapefile
@@ -71,7 +74,23 @@ def _snap_raster_pour_points(outlet_raster_path, flow_accum_path, output_path, s
         dst.write(snapped, 1)
 
 
-def delineate_watershed(dem, outlet, outdir="WSD", all_outputs=False, smooth_filter=9, cwd=None) -> Path:
+def _mask_to_watershed(streams_path, watershed_path):
+    """Clear stream cells that fall outside the watershed, in place."""
+    with rasterio.open(watershed_path) as src:
+        ws = src.read(1)
+        ws_nodata = src.nodata
+
+    with rasterio.open(streams_path, "r+") as dst:
+        streams = dst.read(1)
+        nodata = dst.nodata if dst.nodata is not None else 0
+        outside = (ws == ws_nodata) | (ws <= 0) if ws_nodata is not None else ws <= 0
+        streams[outside] = nodata
+        dst.write(streams, 1)
+        return bool((streams != nodata).any())
+
+
+def delineate_watershed(dem, outlet, outdir="WSD", all_outputs=False, smooth_filter=9,
+                        acc_threshold=200, cwd=None) -> Path:
     """
     Delineate a watershed from a DEM and an outlet layer (point or line).
 
@@ -83,12 +102,15 @@ def delineate_watershed(dem, outlet, outdir="WSD", all_outputs=False, smooth_fil
             accumulation/snapped outlet, etc.) in outdir instead of a temp
             folder that is deleted after processing
         smooth_filter (int): Boundary smoothing filter size (odd, >=3)
+        acc_threshold (float): Flow accumulation (cell count) above which
+            a cell is treated as a stream (default 200)
         cwd (Path): Working directory to resolve relative paths against and
             to run WhiteboxTools from (defaults to the current directory)
 
     Returns:
-        Path: Output directory containing watershed.tif, watershed.shp and
-            watershed_smooth.shp
+        Path: Output directory containing watershed.tif, watershed.shp,
+            watershed_smooth.shp, streams.shp, streams.gpkg and
+            streams.geojson
     """
     cwd = Path(cwd) if cwd is not None else Path.cwd()
     dem_path = Path(dem)
@@ -130,10 +152,12 @@ def delineate_watershed(dem, outlet, outdir="WSD", all_outputs=False, smooth_fil
     watershed_out = str(output_dir / "watershed.tif")
     watershed_vector = str(output_dir / "watershed.shp")
     watershed_vector_smooth = str(output_dir / "watershed_smooth.shp")
+    streams_raster = str(inter_dir / "streams.tif")
 
     try:
         with rasterio.open(dem_str) as src:
             gridsize = abs(src.transform.a)
+            dem_crs = src.crs
 
         wbt.breach_depressions(dem_str, dem_breached)
         wbt.d8_pointer(dem_breached, d8_pointer)
@@ -205,11 +229,40 @@ def delineate_watershed(dem, outlet, outdir="WSD", all_outputs=False, smooth_fil
             watershed_vector_smooth,
             filter=smooth_filter,
         )
+
+        # Extract the stream network, limited to the watershed rather than
+        # the whole DEM, and vectorize it along the D8 flow paths
+        wbt.extract_streams(flow_accum, streams_raster, threshold=acc_threshold)
+        has_streams = _mask_to_watershed(streams_raster, watershed_out)
+        if has_streams:
+            # The raw WhiteboxTools vector is only a stepping stone to the
+            # final streams.* files, so it never goes to output_dir, even
+            # with all_outputs
+            with tempfile.TemporaryDirectory() as raw_dir:
+                streams_vector_raw = str(Path(raw_dir) / "streams_raw.shp")
+                wbt.raster_streams_to_vector(streams_raster, d8_pointer, streams_vector_raw)
+                stream_net = gpd.read_file(streams_vector_raw)
+            # WhiteboxTools does not always write a .prj, so take the CRS
+            # from the DEM
+            if stream_net.crs is None and dem_crs is not None:
+                stream_net = stream_net.set_crs(dem_crs.to_wkt())
+            stream_net.to_file(output_dir / "streams.shp")
+            stream_net.to_file(output_dir / "streams.gpkg", driver="GPKG")
+            # GeoJSON is WGS84 by definition (RFC 7946); readers that ignore or
+            # can't write a non-EPSG "crs" member would otherwise misplace it
+            geojson_net = stream_net.to_crs(epsg=4326) if stream_net.crs is not None else stream_net
+            geojson_net.to_file(output_dir / "streams.geojson", driver="GeoJSON")
     finally:
         if tmp_dir is not None:
             tmp_dir.cleanup()
 
-    print(f"Wrote watershed.tif, watershed.shp, watershed_smooth.shp to {output_dir}")
+    written = "watershed.tif, watershed.shp, watershed_smooth.shp"
+    if has_streams:
+        written += ", streams.shp, streams.gpkg, streams.geojson"
+    else:
+        print(f"Warning: no streams above accumulation {acc_threshold} in the watershed; "
+              "lower --acc-threshold")
+    print(f"Wrote {written} to {output_dir}")
     return output_dir
 
 
@@ -222,6 +275,7 @@ def main():
 Examples:
   wsdgen --dem dem.tif --outlet outlet.shp                       # Point outlet
   wsdgen --dem dem.tif --outlet crosssection.shp --all-outputs   # Keep intermediates
+  wsdgen --dem dem.tif --outlet outlet.shp --acc-threshold 500  # Sparser streams
         """,
     )
     parser.add_argument("--dem", required=True, help="Input DEM file path")
@@ -244,6 +298,11 @@ Examples:
         help="Boundary smoothing filter size (odd number, >=3, default 9); "
              "larger values produce smoother boundaries; output is watershed_smooth.shp",
     )
+    parser.add_argument(
+        "--acc-threshold", type=float, default=200,
+        help="Flow accumulation (cell count) above which a cell is a stream (default 200); "
+             "larger values give a sparser network; output is streams.shp/.gpkg/.geojson",
+    )
     args = parser.parse_args()
 
     delineate_watershed(
@@ -252,6 +311,7 @@ Examples:
         outdir=args.outdir,
         all_outputs=args.all_outputs,
         smooth_filter=args.smooth_filter,
+        acc_threshold=args.acc_threshold,
     )
 
 

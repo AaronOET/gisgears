@@ -36,6 +36,9 @@ wsdgen --dem dem.tif --outlet crosssection.shp --all-outputs
 # Use a coarser/finer boundary-smoothing filter
 wsdgen --dem dem.tif --outlet outlet.shp --smooth-filter 15
 
+# Extract a sparser stream network (cells with flow accumulation > 500)
+wsdgen --dem dem.tif --outlet outlet.shp --acc-threshold 500
+
 # Delineate with pysheds from a pour point shapefile or x/y coordinates
 wsdpyshed --dem dem.tif --outlet pourpoint.shp
 wsdpyshed --dem dem.tif --outlet crosssections.shp  # line outlets, one watershed per line
@@ -62,8 +65,9 @@ showtable data.gpkg --list-layers
 ```python
 from gisgears import wsdgen
 
-# Delineate a watershed (written to WSD/watershed.tif, watershed.shp, watershed_smooth.shp)
-wsdgen.delineate_watershed(dem="dem.tif", outlet="outlet.shp")
+# Delineate a watershed (written to WSD/watershed.tif, watershed.shp, watershed_smooth.shp,
+# streams.shp, streams.gpkg, streams.geojson)
+wsdgen.delineate_watershed(dem="dem.tif", outlet="outlet.shp", acc_threshold=200)
 
 from gisgears import wsdpyshed
 
@@ -86,5 +90,5 @@ layers = showtable.list_layers("data.gpkg")  # [(name, geometry type), ...]
 ## Notes
 
 - The outlet layer may be a point shapefile (a single manually-marked outlet) or a line shapefile (e.g. a cross-section at the watershed outlet); `wsdgen` detects the geometry type automatically.
-- By default only the final `watershed.tif`, `watershed.shp` and `watershed_smooth.shp` are written to the `WSD/` output directory; pass `--all-outputs` to also keep intermediate files (breached DEM, D8 pointer, flow accumulation, snapped outlet, etc.) there instead of a temporary folder.
+- By default only the final `watershed.tif`, `watershed.shp`, `watershed_smooth.shp` and the stream network inside the watershed (`streams.shp` and `streams.gpkg` in the DEM's CRS, `streams.geojson` in WGS84) are written to the `WSD/` output directory; pass `--all-outputs` to also keep intermediate files (breached DEM, D8 pointer, flow accumulation, snapped outlet, stream raster, etc.) there instead of a temporary folder. Streams are cells whose flow accumulation exceeds `--acc-threshold` (cell count, default 200).
 - `wsdpyshed` takes a point or line outlet layer (`--outlet`, reprojected to the DEM's CRS if needed) or coordinates (`--xy`, repeatable). Every feature or `--xy` pair gets its own watershed, labeled 1, 2, ... in order (the cell value in `watershed.tif` and the `id` field in `watershed.shp`); when one outlet is upstream of another, the downstream watershed excludes the upstream one, giving nested sub-basins. Use `--outlet-index` to delineate a single feature only. Each pour point is snapped to the nearest cell whose flow accumulation exceeds `--acc-threshold` (default 200, also used for the stream network) unless `--no-snap` is given. A line outlet (e.g. a cross-section) is rasterized and the watershed is everything draining to any cell it crosses; if it crosses no stream cell, its highest-accumulation cell is snapped like a point. Outputs go to `WSD/` by default: `watershed.tif`, `watershed.shp`, `dem_clipped.tif`, `streams.gpkg` (in the DEM's CRS) and `streams.geojson` (in WGS84, as GeoJSON requires); `--all-outputs` adds the conditioned DEM, flow direction and flow accumulation rasters, and `--web-map` writes `streams_map.html` (requires `folium` and `mapclassify`).

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-10-26
+
+### Added
+
+- `wsdgen` writes the stream network inside the watershed as `streams.shp`, `streams.gpkg` (DEM's CRS) and `streams.geojson` (WGS84); `--acc-threshold` (default 200 cells) sets the flow accumulation above which a cell is a stream.
+
 ## [0.5.1] - 2026-10-26
 
 ### Changed

@@ -9,3 +9,4 @@ pyproj
 matplotlib
 pysheds
 shapely
+terrio

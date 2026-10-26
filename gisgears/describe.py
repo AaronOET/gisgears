@@ -49,14 +49,25 @@ TOOL_DESCRIPTIONS = {
             wsdsmooth watershed.shp --filter 15         # Smoother boundary
     """,
     'showtif': """
-        Display a DEM GeoTIFF with an elevation colormap and hillshade.
+        Display a DEM GeoTIFF with an elevation colormap (optionally with a hillshade).
 
         Prints the raster's CRS, size, cell size, nodata value and
-        elevation statistics, then plots the elevation and a hillshade
-        side by side.
+        elevation statistics, then plots the elevation; --hillshade adds
+        a hillshade side by side.
 
         Examples:
             showtif dem.tif
+            showtif dem.tif --hillshade
+    """,
+    'showtif2': """
+        Display a DEM GeoTIFF like showtif, but read with terrio (no GDAL).
+
+        Prints the same raster info and plots the elevation; --hillshade
+        adds a gdaldem-equivalent hillshade computed by terrio.dem.
+
+        Examples:
+            showtif2 dem.tif
+            showtif2 dem.tif --hillshade
     """,
     'showshp': """
         Display one or more shapefiles overlaid on a single map.

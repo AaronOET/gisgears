@@ -15,7 +15,8 @@ pip install gisgears
 - **wsdgen**: Delineate a watershed from a DEM and an outlet layer (point or line)
 - **wsdpyshed**: Delineate watersheds and the stream network from a DEM and one or more outlets (points or lines) using pysheds (no WhiteboxTools needed)
 - **wsdsmooth**: Smooth the boundary of a watershed polygon shapefile
-- **showtif**: Display a DEM GeoTIFF with an elevation colormap and hillshade
+- **showtif**: Display a DEM GeoTIFF with an elevation colormap, optionally alongside a hillshade
+- **showtif2**: Same as `showtif`, but reads the DEM and computes the hillshade with [terrio](https://terrio.opengeos.org) (no GDAL)
 - **showshp**: Display one or more shapefiles overlaid on a single map
 - **showtable**: Print the attribute table of a shapefile or GeoPackage layer
 
@@ -48,8 +49,10 @@ wsdpyshed --dem dem.tif --xy 285612.0 2936416.7 --acc-threshold 500 --plot
 wsdsmooth WSD/watershed.shp
 wsdsmooth watershed.shp --filter 15 -o basin_smooth.shp
 
-# Inspect a DEM (prints CRS/size/stats, plots elevation + hillshade)
+# Inspect a DEM (prints CRS/size/stats, plots elevation; --hillshade adds a hillshade)
 showtif dem.tif
+showtif dem.tif --hillshade
+showtif2 dem.tif --hillshade  # same, using terrio instead of rasterio
 
 # Overlay shapefiles on one map, labelling features by a column
 showshp WSD/watershed.shp outlet.shp -l Station
@@ -82,6 +85,10 @@ wsdsmooth.smooth_watershed("WSD/watershed.shp", filter_size=9)
 from gisgears import showtif, showshp, showtable
 
 showtif.show_dem("dem.tif")
+
+from gisgears import showtif2
+
+showtif2.show_dem("dem.tif", hillshade=True)  # terrio-based, with hillshade
 showshp.show_shapefiles(["WSD/watershed.shp", "outlet.shp"], label="Station")
 table = showtable.show_table("thiessen.shp", columns=["Station"])  # returns a DataFrame
 layers = showtable.list_layers("data.gpkg")  # [(name, geometry type), ...]

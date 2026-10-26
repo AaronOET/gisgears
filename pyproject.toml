@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gisgears"
-version = "0.5.2"
+version = "0.6.0"
 authors = [
     { name = "aaronchh", email = "aaronhsu219@gmail.com" },
 ]
@@ -24,6 +24,7 @@ dependencies = [
     "matplotlib",
     "pysheds",
     "shapely",
+    "terrio",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -44,5 +45,6 @@ wsdgen = "gisgears.wsdgen:main"
 wsdpyshed = "gisgears.wsdpyshed:main"
 wsdsmooth = "gisgears.wsdsmooth:main"
 showtif = "gisgears.showtif:main"
+showtif2 = "gisgears.showtif2:main"
 showshp = "gisgears.showshp:main"
 showtable = "gisgears.showtable:main"

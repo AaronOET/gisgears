@@ -7,6 +7,7 @@ statistics, then plots the elevation and a hillshade side by side.
 """
 
 import argparse
+import textwrap
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -52,8 +53,11 @@ def describe_crs(crs):
     return "  |  ".join(parts), unit
 
 
-def show_dem(path, show=True):
-    """Print DEM info and plot its elevation and hillshade. Returns the figure."""
+def show_dem(path, show=True, hillshade=False):
+    """
+    Print DEM info and plot its elevation; with hillshade=True, also plot a
+    hillshade alongside. Returns the figure.
+    """
     dem, extent, info = load_dem(path)
 
     print(f"File   : {path}")
@@ -63,26 +67,34 @@ def show_dem(path, show=True):
     print(f"NoData : {info['nodata']}")
     print(f"Elev   : min={dem.min():.2f}  max={dem.max():.2f}  mean={dem.mean():.2f}")
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 6), constrained_layout=True)
+    if hillshade:
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 6), constrained_layout=True)
+        axes = (ax1, ax2)
+    else:
+        fig, ax1 = plt.subplots(figsize=(8, 6), constrained_layout=True)
+        axes = (ax1,)
 
     im = ax1.imshow(dem, cmap="terrain", extent=extent, interpolation="nearest")
     ax1.set_title("Elevation")
     fig.colorbar(im, ax=ax1, label="Elevation (m)", shrink=0.8)
 
-    ls = LightSource(azdeg=315, altdeg=45)
-    filled = dem.filled(np.nan if dem.count() == 0 else dem.min())
-    shaded = ls.shade(filled, cmap=plt.get_cmap("terrain"), blend_mode="overlay",
-                      vert_exag=1, dx=info["res"][0], dy=info["res"][1])
-    shaded[np.ma.getmaskarray(dem)] = (1, 1, 1, 1)
-    ax2.imshow(shaded, extent=extent, interpolation="nearest")
-    ax2.set_title("Hillshade")
+    if hillshade:
+        ls = LightSource(azdeg=315, altdeg=45)
+        filled = dem.filled(np.nan if dem.count() == 0 else dem.min())
+        shaded = ls.shade(filled, cmap=plt.get_cmap("terrain"), blend_mode="overlay",
+                          vert_exag=1, dx=info["res"][0], dy=info["res"][1])
+        shaded[np.ma.getmaskarray(dem)] = (1, 1, 1, 1)
+        ax2.imshow(shaded, extent=extent, interpolation="nearest")
+        ax2.set_title("Hillshade")
 
     proj_text, unit = describe_crs(info["crs"])
-    for ax in (ax1, ax2):
+    for ax in axes:
         ax.set_xlabel(f"Easting ({unit})")
         ax.set_ylabel(f"Northing ({unit})")
         ax.ticklabel_format(useOffset=False, style="plain")
 
+    # Wrap the projection line so it fits the narrower elevation-only figure
+    proj_text = textwrap.fill(proj_text, width=140 if hillshade else 85)
     fig.suptitle(f"{Path(path).name}\n{proj_text}")
     if show:
         plt.show()
@@ -92,20 +104,23 @@ def show_dem(path, show=True):
 def main():
     parser = argparse.ArgumentParser(
         prog="showtif",
-        description="Display a DEM GeoTIFF as an elevation map and a hillshade, "
+        description="Display a DEM GeoTIFF as an elevation map (optionally with a hillshade), "
                     "and print its CRS, size, cell size, nodata and elevation stats",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  showtif dem.tif
+  showtif dem.tif                # Elevation only
+  showtif dem.tif --hillshade    # Elevation and hillshade side by side
         """,
     )
     parser.add_argument("tif", type=Path, help="Path to the DEM .tif file")
+    parser.add_argument("--hillshade", action="store_true",
+                        help="Also plot a hillshade next to the elevation map")
     args = parser.parse_args()
 
     if not args.tif.exists():
         raise SystemExit(f"File not found: {args.tif}")
-    show_dem(args.tif)
+    show_dem(args.tif, hillshade=args.hillshade)
 
 
 if __name__ == "__main__":

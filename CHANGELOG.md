@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-27
+
+### Added
+
+- `showtif2` tool: like `showtif`, but reads the DEM with terrio (no GDAL) and computes a gdaldem-equivalent hillshade with `terrio.dem`. Adds `terrio` as a dependency.
+
+### Changed
+
+- `showtif` (and `showtif2`) plot only the elevation by default; pass `--hillshade` (`hillshade=True` in Python) to plot the hillshade alongside as before.
+
 ## [0.5.2] - 2026-10-26
 
 ### Added

@@ -86,12 +86,14 @@ TOOL_DESCRIPTIONS = {
         Print the attribute table of a shapefile or GeoPackage layer.
 
         Prints the layer's CRS, feature count and field types, followed by
-        the attribute table. GeoPackages with several layers are listed.
+        the attribute table (first 10 rows; -a/--all prints every row).
+        GeoPackages with several layers are listed.
 
         Examples:
             showtable thiessen.shp
             showtable thiessen.shp -c Station -g   # Selected columns plus geometry WKT
             showtable data.gpkg -l roads -n 20     # Pick a layer, first 20 rows
+            showtable thiessen.shp -a              # Print every row
             showtable data.gpkg --list-layers      # List layers only
     """,
 }

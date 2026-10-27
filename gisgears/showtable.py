@@ -3,7 +3,7 @@
 showtable - Print the attribute table of a shapefile or GeoPackage layer.
 
 Prints the layer's CRS, feature count and field types, followed by the
-attribute table. For a GeoPackage with several layers, the layers are
+attribute table (first 10 rows unless --all is given). For a GeoPackage with several layers, the layers are
 listed and the first one is shown unless another is chosen.
 """
 
@@ -26,8 +26,11 @@ def list_layers(path, verbose=True):
     return layers
 
 
-def show_table(path, layer=None, rows=None, columns=None, geometry=False):
-    """Print layer info and its attribute table. Returns the table as a DataFrame."""
+def show_table(path, layer=None, rows=10, columns=None, geometry=False):
+    """Print layer info and its attribute table. Returns the table as a DataFrame.
+
+    Only the first ``rows`` rows are printed and returned; pass None for all rows.
+    """
     layers = pyogrio.list_layers(path)  # array of [name, geometry type]
     if len(layers) > 1:
         list_layers(path)
@@ -60,12 +63,16 @@ def show_table(path, layer=None, rows=None, columns=None, geometry=False):
     if geometry:
         table["geometry"] = gdf.geometry.to_wkt()
 
-    if rows is not None:
+    hidden = 0
+    if rows is not None and len(table) > rows:
+        hidden = len(table) - rows
         table = table.head(rows)
 
     with pd.option_context("display.max_rows", None, "display.max_columns", None,
                            "display.width", None, "display.max_colwidth", 60):
         print(table.to_string() if not table.empty else "(no attribute fields)")
+    if hidden:
+        print(f"... ({hidden} more rows; use --all to show all)")
     return table
 
 
@@ -80,6 +87,7 @@ Examples:
   showtable thiessen.shp
   showtable thiessen.shp -c Station -g     # Selected columns plus geometry WKT
   showtable data.gpkg -l roads -n 20       # Pick a layer, first 20 rows
+  showtable thiessen.shp -a                # Print every row
   showtable data.gpkg --list-layers        # List layers only
         """,
     )
@@ -88,8 +96,11 @@ Examples:
                         help="Layer name inside a GeoPackage (default: first layer)")
     parser.add_argument("-L", "--list-layers", action="store_true",
                         help="List the layers in the file and exit")
-    parser.add_argument("-n", "--rows", type=int, metavar="N",
-                        help="Show only the first N rows (default: all)")
+    rows_group = parser.add_mutually_exclusive_group()
+    rows_group.add_argument("-n", "--rows", type=int, default=10, metavar="N",
+                            help="Show only the first N rows (default: 10)")
+    rows_group.add_argument("-a", "--all", action="store_true",
+                            help="Show all rows")
     parser.add_argument("-c", "--columns", nargs="+", metavar="COL",
                         help="Show only these columns")
     parser.add_argument("-g", "--geometry", action="store_true",
@@ -101,7 +112,7 @@ Examples:
     if args.list_layers:
         list_layers(args.path)
         return
-    show_table(args.path, layer=args.layer, rows=args.rows,
+    show_table(args.path, layer=args.layer, rows=None if args.all else args.rows,
                columns=args.columns, geometry=args.geometry)
 
 

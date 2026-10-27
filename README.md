@@ -90,7 +90,7 @@ from gisgears import showtif2
 
 showtif2.show_dem("dem.tif", hillshade=True)  # terrio-based, with hillshade
 showshp.show_shapefiles(["WSD/watershed.shp", "outlet.shp"], label="Station")
-table = showtable.show_table("thiessen.shp", columns=["Station"])  # returns a DataFrame
+table = showtable.show_table("thiessen.shp", columns=["Station"], rows=None)  # all rows, returns a DataFrame
 layers = showtable.list_layers("data.gpkg")  # [(name, geometry type), ...]
 ```
 

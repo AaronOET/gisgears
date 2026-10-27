@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.3] - 2026-10-28
+
+### Changed
+
+- `showtable` prints only the first 10 rows by default (previously all rows); use `-a`/`--all` to print every row. `show_table()` now defaults to `rows=10`; pass `rows=None` for all rows.
+
 ## [0.6.2] - 2026-10-28
 
 ### Changed

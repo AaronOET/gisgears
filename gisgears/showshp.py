@@ -2,7 +2,8 @@
 """
 showshp - Display one or more shapefiles overlaid on a single map.
 
-Prints each file's CRS, feature count, bounds and attribute table. Layers
+Prints each file's CRS, feature count, bounds and attribute table (first
+10 rows unless --all is given). Layers
 are reprojected onto the first layer's CRS so they line up, and larger
 layers are drawn underneath smaller ones.
 """
@@ -14,20 +15,30 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 
 
-def print_info(path, gdf):
-    """Print a layer's CRS, feature count, bounds and attribute table."""
+def print_info(path, gdf, max_rows=10):
+    """Print a layer's CRS, feature count, bounds and attribute table.
+
+    Only the first ``max_rows`` rows of the table are printed; pass None to print all.
+    """
     print(f"File     : {path}")
     print(f"CRS      : {gdf.crs}")
     print(f"Features : {len(gdf)}  ({', '.join(gdf.geom_type.unique())})")
     print(f"Bounds   : {gdf.total_bounds}")
     attrs = gdf.drop(columns="geometry")
     if not attrs.empty:
-        print(attrs.to_string())
+        if max_rows is not None and len(attrs) > max_rows:
+            print(attrs.head(max_rows).to_string())
+            print(f"... ({len(attrs) - max_rows} more rows; use --all to show all)")
+        else:
+            print(attrs.to_string())
     print()
 
 
-def show_shapefiles(paths, label=None, show=True):
-    """Print info for each shapefile and plot them on one map. Returns the axes."""
+def show_shapefiles(paths, label=None, show=True, max_rows=10):
+    """Print info for each shapefile and plot them on one map. Returns the axes.
+
+    ``max_rows`` limits how many attribute rows are printed per layer (None prints all).
+    """
     _, ax = plt.subplots(figsize=(9, 9), constrained_layout=True)
     colors = plt.get_cmap("tab10").colors
     target_crs = None
@@ -35,7 +46,7 @@ def show_shapefiles(paths, label=None, show=True):
 
     for i, path in enumerate(paths):
         gdf = gpd.read_file(path)
-        print_info(path, gdf)
+        print_info(path, gdf, max_rows=max_rows)
 
         # Reproject everything onto the first layer's CRS so layers line up
         if target_crs is None:
@@ -80,6 +91,7 @@ Examples:
   showshp watershed.shp
   showshp thiessen.shp -l Station          # Label features by a column
   showshp thiessen.shp watershed.shp       # Overlay several layers
+  showshp thiessen.shp -a                  # Print every attribute row
         """,
     )
     parser.add_argument("shp", nargs="+", type=Path, help="Path(s) to .shp files")
@@ -87,12 +99,16 @@ Examples:
         "-l", "--label", metavar="COLUMN",
         help="Attribute column to write on each feature (e.g. Station)",
     )
+    parser.add_argument(
+        "-a", "--all", action="store_true",
+        help="Print the full attribute table (default: first 10 rows)",
+    )
     args = parser.parse_args()
 
     missing = [str(p) for p in args.shp if not p.exists()]
     if missing:
         raise SystemExit(f"File(s) not found: {', '.join(missing)}")
-    show_shapefiles(args.shp, label=args.label)
+    show_shapefiles(args.shp, label=args.label, max_rows=None if args.all else 10)
 
 
 if __name__ == "__main__":

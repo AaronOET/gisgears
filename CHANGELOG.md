@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.2] - 2026-10-28
+
+### Changed
+
+- `showshp` prints only the first 10 rows of each attribute table by default; use `-a`/`--all` to print every row.
+
 ## [0.6.1] - 2026-10-27
 
 ### Changed

@@ -72,13 +72,15 @@ TOOL_DESCRIPTIONS = {
     'showshp': """
         Display one or more shapefiles overlaid on a single map.
 
-        Prints each file's CRS, feature count, bounds and attribute table.
-        Layers are reprojected onto the first layer's CRS so they line up.
+        Prints each file's CRS, feature count, bounds and attribute table
+        (first 10 rows; -a/--all prints every row). Layers are reprojected
+        onto the first layer's CRS so they line up.
 
         Examples:
             showshp watershed.shp
             showshp thiessen.shp -l Station        # Label features by a column
             showshp thiessen.shp watershed.shp     # Overlay several layers
+            showshp thiessen.shp -a                # Print every attribute row
     """,
     'showtable': """
         Print the attribute table of a shapefile or GeoPackage layer.

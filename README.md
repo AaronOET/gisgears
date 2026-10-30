@@ -53,6 +53,7 @@ wsdsmooth watershed.shp --filter 15 -o basin_smooth.shp
 showtif dem.tif
 showtif dem.tif -H
 showtif2 dem.tif -H  # same, using terrio instead of rasterio
+showtif dem.tif -H --azdeg 270 --altdeg 30  # light from the west, lower sun (defaults 315/45)
 
 # Overlay shapefiles on one map, labelling features by a column
 showshp WSD/watershed.shp outlet.shp -l Station
@@ -89,6 +90,7 @@ showtif.show_dem("dem.tif")
 from gisgears import showtif2
 
 showtif2.show_dem("dem.tif", hillshade=True)  # terrio-based, with hillshade
+showtif.show_dem("dem.tif", hillshade=True, azdeg=270, altdeg=30)  # custom light direction
 showshp.show_shapefiles(["WSD/watershed.shp", "outlet.shp"], label="Station")
 table = showtable.show_table("thiessen.shp", columns=["Station"], rows=None)  # all rows, returns a DataFrame
 layers = showtable.list_layers("data.gpkg")  # [(name, geometry type), ...]

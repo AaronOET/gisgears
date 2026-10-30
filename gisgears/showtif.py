@@ -53,10 +53,11 @@ def describe_crs(crs):
     return "  |  ".join(parts), unit
 
 
-def show_dem(path, show=True, hillshade=False):
+def show_dem(path, show=True, hillshade=False, azdeg=315, altdeg=45):
     """
     Print DEM info and plot its elevation; with hillshade=True, also plot a
-    hillshade alongside. Returns the figure.
+    hillshade alongside, lit from azimuth azdeg and altitude altdeg (degrees).
+    Returns the figure.
     """
     dem, extent, info = load_dem(path)
 
@@ -79,13 +80,13 @@ def show_dem(path, show=True, hillshade=False):
     fig.colorbar(im, ax=ax1, label="Elevation (m)", shrink=0.8)
 
     if hillshade:
-        ls = LightSource(azdeg=315, altdeg=45)
+        ls = LightSource(azdeg=azdeg, altdeg=altdeg)
         filled = dem.filled(np.nan if dem.count() == 0 else dem.min())
         shaded = ls.shade(filled, cmap=plt.get_cmap("terrain"), blend_mode="overlay",
                           vert_exag=1, dx=info["res"][0], dy=info["res"][1])
         shaded[np.ma.getmaskarray(dem)] = (1, 1, 1, 1)
         ax2.imshow(shaded, extent=extent, interpolation="nearest")
-        ax2.set_title("Hillshade")
+        ax2.set_title(f"Hillshade (azimuth {azdeg:g}°, altitude {altdeg:g}°)")
 
     proj_text, unit = describe_crs(info["crs"])
     for ax in axes:
@@ -111,16 +112,21 @@ def main():
 Examples:
   showtif dem.tif                # Elevation only
   showtif dem.tif -H             # Elevation and hillshade side by side
+  showtif dem.tif -H --azdeg 270 --altdeg 30   # Light from the west, lower sun
         """,
     )
     parser.add_argument("tif", type=Path, help="Path to the DEM .tif file")
     parser.add_argument("-H", "--hillshade", action="store_true",
                         help="Also plot a hillshade next to the elevation map")
+    parser.add_argument("--azdeg", type=float, default=315,
+                        help="Hillshade light azimuth in degrees, clockwise from north (default: 315)")
+    parser.add_argument("--altdeg", type=float, default=45,
+                        help="Hillshade light altitude in degrees above the horizon (default: 45)")
     args = parser.parse_args()
 
     if not args.tif.exists():
         raise SystemExit(f"File not found: {args.tif}")
-    show_dem(args.tif, hillshade=args.hillshade)
+    show_dem(args.tif, hillshade=args.hillshade, azdeg=args.azdeg, altdeg=args.altdeg)
 
 
 if __name__ == "__main__":

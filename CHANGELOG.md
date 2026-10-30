@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.5] - 2026-10-31
+
+### Added
+
+- `showtif` and `showtif2` accept `--azdeg` and `--altdeg` to set the hillshade light azimuth and altitude in degrees (defaults 315 and 45); `show_dem()` takes matching `azdeg`/`altdeg` arguments. The hillshade panel title shows the angles used.
+
 ## [0.6.4] - 2026-10-31
 
 ### Added

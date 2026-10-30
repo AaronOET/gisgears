@@ -150,11 +150,11 @@ def main():
         epilog="""
 Examples:
   showtif2 dem.tif                # Elevation only
-  showtif2 dem.tif --hillshade    # Elevation and hillshade side by side
+  showtif2 dem.tif -H             # Elevation and hillshade side by side
         """,
     )
     parser.add_argument("tif", type=Path, help="Path to the DEM .tif file")
-    parser.add_argument("--hillshade", action="store_true",
+    parser.add_argument("-H", "--hillshade", action="store_true",
                         help="Also plot a hillshade next to the elevation map")
     args = parser.parse_args()
 

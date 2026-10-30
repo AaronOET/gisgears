@@ -49,10 +49,10 @@ wsdpyshed --dem dem.tif --xy 285612.0 2936416.7 --acc-threshold 500 --plot
 wsdsmooth WSD/watershed.shp
 wsdsmooth watershed.shp --filter 15 -o basin_smooth.shp
 
-# Inspect a DEM (prints CRS/size/stats, plots elevation; --hillshade adds a hillshade)
+# Inspect a DEM (prints CRS/size/stats, plots elevation; -H/--hillshade adds a hillshade)
 showtif dem.tif
-showtif dem.tif --hillshade
-showtif2 dem.tif --hillshade  # same, using terrio instead of rasterio
+showtif dem.tif -H
+showtif2 dem.tif -H  # same, using terrio instead of rasterio
 
 # Overlay shapefiles on one map, labelling features by a column
 showshp WSD/watershed.shp outlet.shp -l Station
